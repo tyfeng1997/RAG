@@ -1,0 +1,21 @@
+[
+  {
+    "doc_id": "filename_doc_1",
+    "original_uuid": "5e4c01057a10732d34784af2a97bee9d173863f043b9901de8ef7f57bc590145",
+    "content": "doc_1_full_content",
+    "chunks": [
+      {
+        "type": "text",
+        "chunk_id": "doc_1_chunk_0",
+        "original_index": 0,
+        "content": "doc_1_chunk_0_content"
+      },
+      {
+        "type": "text",
+        "chunk_id": "doc_1_chunk_1",
+        "original_index": 1,
+        "content": "doc_1_chunk_1_content"
+      }
+    ]
+  }
+]
