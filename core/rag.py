@@ -1,30 +1,41 @@
-
-from typing import List, Dict, Any, Optional, Union
-import asyncio
 from dataclasses import asdict
+from typing import Any, Dict, List, Optional
 
-from rag_core import (
-    Document, Chunk, SearchResult, RerankResult, RAGConfig, SearchStrategy,
-    EmbeddingModel, RerankModel, GenerativeModel, VectorStore, TextSearchStore
+from logger import setup_logger
+from core.core import (
+    Chunk,
+    Document,
+    EmbeddingModel,
+    GenerativeModel,
+    RAGConfig,
+    RerankModel,
+    RerankResult,
+    SearchResult,
+    SearchStrategy,
+    TextSearchStore,
+    VectorStore,
 )
 
 class RAGSystem:
     """Main RAG system orchestrator"""
     
-    def __init__(self, 
-                 embedding_model: EmbeddingModel,
-                 rerank_model: RerankModel,
-                 generative_model: GenerativeModel,
-                 vector_store: VectorStore,
-                 text_search_store: TextSearchStore,
-                 config: RAGConfig):
-        
+    def __init__(
+        self,
+        embedding_model: EmbeddingModel,
+        rerank_model: RerankModel,
+        generative_model: GenerativeModel,
+        vector_store: VectorStore,
+        text_search_store: TextSearchStore,
+        config: RAGConfig,
+    ):
         self.embedding_model = embedding_model
         self.rerank_model = rerank_model
         self.generative_model = generative_model
         self.vector_store = vector_store
         self.text_search_store = text_search_store
         self.config = config
+        self.logger = setup_logger(__name__)
+    
         
     def ingest_documents(self, documents: List[Document]) -> bool:
         
@@ -49,7 +60,7 @@ class RAGSystem:
             return vector_success and text_success
             
         except Exception as e:
-            print(f"Error ingesting documents: {e}")
+            self.logger.error(f"Error ingesting documents: {e}")
             return False
     
     def ingest_from_pipeline_json(self, pipeline_data: List[Dict[str, Any]]) -> bool:
@@ -63,11 +74,13 @@ class RAGSystem:
             return self.ingest_documents(documents)
             
         except Exception as e:
-            print(f"Error ingesting from pipeline JSON: {e}")
+            self.logger.error(f"Error ingesting from pipeline JSON: {e}")
             return False
     
     
-    def _vector_search(self, query: str, top_n: Optional[int] = None, **kwargs) -> List[SearchResult]:
+    def _vector_search(
+        self, query: str, top_n: Optional[int] = None, **kwargs
+    ) -> List[SearchResult]:
         """Perform vector search"""
         top_n = top_n or self.config.vector_search_top_n
 
@@ -82,7 +95,9 @@ class RAGSystem:
         )
         
         return results
-    def _text_search(self, query: str, top_n: Optional[int] = None, **kwargs) -> List[SearchResult]:
+    def _text_search(
+        self, query: str, top_n: Optional[int] = None, **kwargs
+    ) -> List[SearchResult]:
         """Perform full-text search"""
         top_n = top_n or self.config.text_search_top_n
 
@@ -124,9 +139,12 @@ class RAGSystem:
         return combined_results
 
     
-    def search(self, query: str, 
-               strategy: SearchStrategy = SearchStrategy.HYBRID,
-               **kwargs) -> List[SearchResult]:
+    def search(
+        self,
+        query: str,
+        strategy: SearchStrategy = SearchStrategy.HYBRID,
+        **kwargs
+    ) -> List[SearchResult]:
         """Search for relevant chunks"""
         
         if strategy == SearchStrategy.VECTOR_ONLY:
@@ -136,7 +154,9 @@ class RAGSystem:
         elif strategy == SearchStrategy.HYBRID:
             return self._hybrid_search(query, **kwargs)
         
-    def rerank_results(self, query: str, search_results: List[SearchResult]) -> List[RerankResult]:
+    def rerank_results(
+        self, query: str, search_results: List[SearchResult]
+    ) -> List[RerankResult]:
         """Rerank search results for better relevance"""
         if not search_results:
             return []
@@ -152,9 +172,12 @@ class RAGSystem:
         )
         
         return rerank_results
-    def generate_answer(self, query: str, 
-                       context_chunks: Optional[List[Chunk]] = None,
-                       **kwargs) -> str:
+    def generate_answer(
+        self,
+        query: str,
+        context_chunks: Optional[List[Chunk]] = None,
+        **kwargs
+    ) -> str:
         """Generate answer using context chunks"""
         if context_chunks is None:
             context_chunks = []
@@ -171,10 +194,13 @@ class RAGSystem:
         
         return answer
     
-    def query(self, query: str, 
-              strategy: SearchStrategy = SearchStrategy.HYBRID,
-              use_reranking: bool = True,
-              **kwargs) -> Dict[str, Any]:
+    def query(
+        self,
+        query: str,
+        strategy: SearchStrategy = SearchStrategy.HYBRID,
+        use_reranking: bool = True,
+        **kwargs
+    ) -> Dict[str, Any]:
         """Complete RAG query pipeline"""
         
         # Step 1: Search for relevant chunks
@@ -220,7 +246,7 @@ class RAGSystem:
             text_success = self.text_search_store.delete_by_doc_id(doc_id)
             return vector_success and text_success
         except Exception as e:
-            print(f"Error deleting document {doc_id}: {e}")
+            self.logger.error(f"Error deleting document {doc_id}: {e}")
             return False
 
 

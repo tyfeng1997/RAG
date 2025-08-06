@@ -1,16 +1,10 @@
 import os
-import cohere
+from typing import List, Optional
+
 import anthropic
-from typing import List, Dict, Any, Optional
-from tidb_vector.integrations import TiDBVectorClient
-from pytidb import TiDBClient
-from pytidb.schema import TableModel, Field
 from dotenv import load_dotenv
 
-from rag_core import (
-    EmbeddingModel, RerankModel, GenerativeModel, VectorStore, TextSearchStore,
-    Chunk, SearchResult, RerankResult, ChunkType
-)
+from core.core import Chunk, GenerativeModel
 
 load_dotenv()
 
@@ -43,8 +37,13 @@ class AnthropicGenerativeModel(GenerativeModel):
     #             print(text, end='', flush=True)
     #             yield text
 
-    def generate_with_context(self, query: str, context_chunks: List[Chunk], 
-                            max_tokens: int = 1000, **kwargs) -> str:
+    def generate_with_context(
+        self, 
+        query: str, 
+        context_chunks: List[Chunk], 
+        max_tokens: int = 1000, 
+        **kwargs
+    ) -> str:
         """Generate answer with context chunks"""
         # Build context from chunks
         context_parts = []
@@ -63,26 +62,3 @@ class AnthropicGenerativeModel(GenerativeModel):
                 Please provide a comprehensive answer based on the context provided. If the context doesn't contain enough information to fully answer the question, please indicate what information is missing."""
 
         return self.generate(prompt, max_tokens, **kwargs)
-
-
-if __name__ == "__main__":
-    
-    from embedding_impl import CohereEmbeddingModel, CohereRerankModel
-    cohere_rerank_model = CohereRerankModel()
-    query = "What is the capital of the United States?"
-    chunks = [
-        Chunk(chunk_id=1, doc_id=1, content="The capital of the United States is Washington, D.C."),
-        Chunk(chunk_id=2, doc_id=2, content="The capital of France is Paris."),
-        Chunk(chunk_id=3, doc_id=3, content="The capital of Germany is Berlin.")
-    ]
-    results = cohere_rerank_model.rerank(query, chunks, top_n=2)
-    
-    
-    # Initialize Anthropic generative model
-    anthropic_model = AnthropicGenerativeModel(api_key=os.getenv("ANTHROPIC_API_KEY"))
-    
-
-
-    response = anthropic_model.generate_with_context(query=query, context_chunks=[result.chunk for result in results], max_tokens=500)
-    print(f"Generated response: {response}")
-   

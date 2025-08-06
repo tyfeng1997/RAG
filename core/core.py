@@ -4,10 +4,6 @@ from dataclasses import dataclass, field
 from enum import Enum
 from datetime import datetime
 
-
-
-
-
 @dataclass
 class RAGConfig:
     """RAG system configuration"""
@@ -26,22 +22,11 @@ class RAGConfig:
     # Generation parameters
     max_tokens: int = 1000
 
-
-# =============================================================================
-# Search Strategy Enum
-# =============================================================================
-
 class SearchStrategy(Enum):
     VECTOR_ONLY = "vector_only"
     TEXT_ONLY = "text_only" 
     HYBRID = "hybrid"  # Combine vector + text search
     
-    
-    
-    
-
-
-
 class ChunkType(Enum):
     TEXT = "text"
     # Future support: IMAGE = "image", TABLE = "table", etc.
@@ -108,8 +93,6 @@ class RerankResult:
     relevance_score: float
     original_rank: int
     new_rank: int
-
-
 
 
 class EmbeddingModel(ABC):

@@ -1,16 +1,11 @@
 import os
-import cohere
-import anthropic
-from typing import List, Dict, Any, Optional
-from tidb_vector.integrations import TiDBVectorClient
-from pytidb import TiDBClient
-from pytidb.schema import TableModel, Field
-from dotenv import load_dotenv
+from typing import Any, Dict, List, Optional
 
-from rag_core import (
-    EmbeddingModel, RerankModel, GenerativeModel, VectorStore, TextSearchStore,
-    Chunk, SearchResult, RerankResult, ChunkType
-)
+from dotenv import load_dotenv
+from pytidb import TiDBClient
+from pytidb.schema import Field, TableModel
+
+from core.core import Chunk, ChunkType, SearchResult, TextSearchStore
 
 # Load environment variables
 load_dotenv()
@@ -120,4 +115,11 @@ class TiDBTextSearchStore(TextSearchStore):
             return []
     
     def delete_by_doc_id(self, doc_id: str) -> bool:
-        pass
+        """Delete all chunks for a document"""
+        try:
+            # Delete all chunks with matching doc_id
+            self.table.delete().where(TiDBChunkModel.doc_id == doc_id).execute()
+            return True
+        except Exception as e:
+            print(f"Error deleting document {doc_id}: {e}")
+            return False

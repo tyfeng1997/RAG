@@ -1,14 +1,14 @@
-from embedding_impl import (
-        CohereEmbeddingModel, CohereRerankModel,
-    )
-from genearte_impl import  AnthropicGenerativeModel
-from vectordb_impl import  TiDBVectorStore
-from full_text_search_impl import TiDBTextSearchStore
-from rag_core import RAGConfig
-from rag_system import RAGSystem
-from typing import List, Dict, Any, Optional
+from typing import Any, Dict, Optional
+
 from dotenv import load_dotenv
-from rag_core import SearchStrategy
+
+from embedding.cohere_embedding import CohereEmbeddingModel
+from rerank.cohere_rerank import CohereRerankModel
+from fulltext.TiDB_fulltext import TiDBTextSearchStore
+from generate.anthropic_genearte import AnthropicGenerativeModel
+from core.core import RAGConfig, SearchStrategy
+from core.rag import RAGSystem
+from vector.TiDB_vector import TiDBVectorStore
 load_dotenv()
 def create_rag_system(config_dict: Optional[Dict[str, Any]] = None) -> RAGSystem:
     """Factory function to create RAG system with default configuration"""
