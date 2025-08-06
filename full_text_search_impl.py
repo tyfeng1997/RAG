@@ -32,16 +32,13 @@ class TiDBChunkModel(TableModel, table=True):
 class TiDBTextSearchStore(TextSearchStore):
     """TiDB full-text search implementation"""
     
-    def __init__(self, host: str, port: int = 4000, username: str = "", 
-                 password: str = "", database: str = "test"):
+    def __init__(self):
         self.db = TiDBClient.connect(
-            host=host,
-            port=port,
-            username=username,
-            password=password,
-            database=database,
-            
-
+            host=os.getenv("TIDB_DATABASE_HOST"),
+            port=int(os.getenv("TIDB_DATABASE_PORT")),
+            username=os.getenv("TIDB_DATABASE_USERNAME"),
+            password=os.getenv("TIDB_DATABASE_PASSWORD"),
+            database=os.getenv("TIDB_DATABASE_NAME")
         )
         self.table = self.db.create_table(schema=TiDBChunkModel,if_exists="skip")
         
@@ -124,26 +121,3 @@ class TiDBTextSearchStore(TextSearchStore):
     
     def delete_by_doc_id(self, doc_id: str) -> bool:
         pass
-    
-    
-if __name__ == "__main__":
-    # Example usage
-    text_search_store = TiDBTextSearchStore(
-        host=os.getenv("TIDB_DATABASE_HOST"),
-        port=int(os.getenv("TIDB_DATABASE_PORT")),
-        username=os.getenv("TIDB_DATABASE_USERNAME"),
-        password=os.getenv("TIDB_DATABASE_PASSWORD"),
-        database=os.getenv("TIDB_DATABASE_NAME")
-    )
-    
-    # Insert example chunks
-    # chunks = [
-    #     Chunk(chunk_id="3", doc_id="doc3", content="i love china", chunk_type=ChunkType.TEXT),
-    # ]
-    
-    # text_search_store.insert_chunks(chunks)
-    
-    # Perform search
-    results = text_search_store.search_text("love", top_n=5)
-    for result in results:
-        print(f"Found chunk: {result.chunk.content} with score {result.score}")

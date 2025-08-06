@@ -75,12 +75,12 @@ class TiDBVectorStore(VectorStore):
             return False
     
     def search_similar(self, query_embedding: List[float], 
-                      top_k: int = 10, 
+                      top_n: int = 10, 
                       filter_metadata: Optional[Dict[str, Any]] = None) -> List[SearchResult]:
         """Search for similar chunks"""
         try:
             # Perform vector search
-            results = self.client.query(query_embedding, k=top_k)
+            results = self.client.query(query_embedding, k=top_n)
             
             search_results = []
             for i, result in enumerate(results):
@@ -113,33 +113,3 @@ class TiDBVectorStore(VectorStore):
     def delete_by_doc_id(self, doc_id: str) -> bool:
         """Delete all chunks for a document"""
         pass
-
-
-if __name__ == "__main__":
-    # Example usage of TiDBVectorStore
-    vector_store = TiDBVectorStore(
-        table_name="rag_embeddings",
-        connection_string=os.getenv("TIDB_DATABASE_URL"),
-        vector_dimension=1024,
-        drop_existing=True
-    )
-    
-    # Create example chunks
-    chunks = [
-        Chunk(chunk_id=1, doc_id="doc1", content="This is a test chunk.", 
-              chunk_type=ChunkType.TEXT, original_index=0, 
-              embedding=[0.1] * 1024, metadata={"source": "test"}),
-        Chunk(chunk_id=2, doc_id="doc2", content="Another test chunk.", 
-              chunk_type=ChunkType.TEXT, original_index=1, 
-              embedding=[0.2] * 1024, metadata={"source": "test"})
-    ]
-    
-    # Insert chunks
-    if vector_store.insert_chunks(chunks):
-        print("Chunks inserted successfully")
-    
-    # Search similar chunks
-    query_embedding = [0.15] * 1024
-    results = vector_store.search_similar(query_embedding, top_k=5)
-    for result in results:
-        print(f"Found chunk: {result.chunk.content} with score {result.score}")

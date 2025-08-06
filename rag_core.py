@@ -18,14 +18,13 @@ class RAGConfig:
     text_search_config: Dict[str, Any] = field(default_factory=dict)
     
     # Search parameters
-    vector_search_top_k: int = 20
-    text_search_top_k: int = 20
-    rerank_top_k: int = 10
+    vector_search_top_n: int = 20
+    text_search_top_n: int = 20
+    rerank_top_n: int = 10
     final_context_chunks: int = 5
     
     # Generation parameters
     max_tokens: int = 1000
-    temperature: float = 0.1
 
 
 # =============================================================================
@@ -136,7 +135,7 @@ class RerankModel(ABC):
     """Abstract rerank model interface"""
     
     @abstractmethod
-    def rerank(self, query: str, chunks: List[Chunk], top_k: int = 10) -> List[RerankResult]:
+    def rerank(self, query: str, chunks: List[Chunk], top_n: int = 10) -> List[RerankResult]:
         """Rerank chunks based on query relevance"""
         pass
 
@@ -166,7 +165,7 @@ class VectorStore(ABC):
     
     @abstractmethod
     def search_similar(self, query_embedding: List[float], 
-                      top_k: int = 10, 
+                      top_n: int = 10, 
                       filter_metadata: Optional[Dict[str, Any]] = None) -> List[SearchResult]:
         """Search for similar chunks"""
         pass
@@ -187,7 +186,7 @@ class TextSearchStore(ABC):
     
     @abstractmethod
     def search_text(self, query: str, 
-                   top_k: int = 10,
+                   top_n: int = 10,
                    filter_metadata: Optional[Dict[str, Any]] = None) -> List[SearchResult]:
         """Full-text search for chunks"""
         pass
