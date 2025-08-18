@@ -47,4 +47,3 @@ def ingest_pdf_endpoint(request: PDFIngestRequest):
     success,num_docs = rag_system.ingest_from_pipeline_json(pipeline_data)
     return {"success": success, "num_docs": num_docs}
 
-# 启动命令： uvicorn api:app --reload
