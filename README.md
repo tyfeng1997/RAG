@@ -38,7 +38,7 @@ The system follows a modular, plugin-based architecture with clear abstractions:
 The system is built around these key abstract base classes:
 
 - **`EmbeddingModel`**: Interface for text embedding models
-- **`RerankModel`**: Interface for document reranking models  
+- **`RerankModel`**: Interface for document reranking models
 - **`GenerativeModel`**: Interface for text generation models
 - **`VectorStore`**: Interface for vector similarity search
 - **`TextSearchStore`**: Interface for full-text search capabilities
@@ -57,36 +57,36 @@ This design makes it easy to swap out different providers or add new implementat
 ### Setup
 
 1. **Clone the repository**:
+
    ```bash
    git clone <repository-url>
    cd tidb_rag
    ```
 
 2. **Create and activate virtual environment**:
+
    ```bash
    uv venv rag
    source rag/bin/activate  # On Windows: rag\Scripts\activate
    ```
 
 3. **Install dependencies**:
+
    ```bash
    uv pip install -r requirements.txt
    ```
 
 4. **Environment Configuration**:
-   Create a `.env` file in the project root:
+   Create a `.env.local` file in the project root:
+
    ```env
    # API Keys
    ANTHROPIC_API_KEY=your_anthropic_api_key
    COHERE_API_KEY=your_cohere_api_key
-   
+
    # TiDB Configuration
    TIDB_DATABASE_URL=mysql+pymysql://username:password@host:port/database
-   TIDB_DATABASE_HOST=your_tidb_host
-   TIDB_DATABASE_PORT=4000
-   TIDB_DATABASE_USERNAME=your_username
-   TIDB_DATABASE_PASSWORD=your_password
-   TIDB_DATABASE_NAME=your_database_name
+
    ```
 
 ## 🔧 Usage
@@ -187,7 +187,7 @@ vector_result = rag_system.query(
 
 # Full-text only search
 text_result = rag_system.query(
-    "query text", 
+    "query text",
     strategy=SearchStrategy.TEXT_ONLY
 )
 
@@ -212,15 +212,15 @@ class CustomEmbeddingModel(EmbeddingModel):
     def __init__(self, model_name: str, api_key: str):
         # Initialize your model
         pass
-    
+
     def embed_text(self, text: str) -> List[float]:
         # Implement single text embedding
         pass
-    
+
     def embed_batch(self, texts: List[str]) -> List[List[float]]:
         # Implement batch embedding
         pass
-    
+
     def get_dimension(self) -> int:
         # Return embedding dimension
         return 1536  # Example dimension
@@ -236,13 +236,13 @@ class CustomVectorStore(VectorStore):
     def insert_chunks(self, chunks: List[Chunk]) -> bool:
         # Implement chunk insertion
         pass
-    
-    def search_similar(self, query_embedding: List[float], 
+
+    def search_similar(self, query_embedding: List[float],
                       top_n: int = 10,
                       filter_metadata: Optional[Dict[str, Any]] = None) -> List[SearchResult]:
         # Implement similarity search
         pass
-    
+
     def delete_by_doc_id(self, doc_id: str) -> bool:
         # Implement document deletion
         pass
@@ -258,8 +258,8 @@ class CustomGenerativeModel(GenerativeModel):
     def generate(self, prompt: str, max_tokens: int = 1000, **kwargs) -> str:
         # Implement text generation
         pass
-    
-    def generate_with_context(self, query: str, context_chunks: List[Chunk], 
+
+    def generate_with_context(self, query: str, context_chunks: List[Chunk],
                             max_tokens: int = 1000, **kwargs) -> str:
         # Implement context-aware generation
         pass
@@ -272,7 +272,7 @@ class CustomGenerativeModel(GenerativeModel):
 - **`core/`**: Abstract interfaces and core data models
 - **`embedding/`**: Embedding model implementations
 - **`fulltext/`**: Full-text search implementations
-- **`generate/`**: Text generation model implementations  
+- **`generate/`**: Text generation model implementations
 - **`rerank/`**: Document reranking implementations
 - **`vector/`**: Vector store implementations
 - **`logger.py`**: Logging utilities
@@ -291,13 +291,13 @@ class RAGConfig:
     generative_model_config: Dict[str, Any] = field(default_factory=dict)
     vector_store_config: Dict[str, Any] = field(default_factory=dict)
     text_search_config: Dict[str, Any] = field(default_factory=dict)
-    
+
     # Search parameters
     vector_search_top_n: int = 20          # Top results from vector search
     text_search_top_n: int = 20            # Top results from text search
     rerank_top_n: int = 10                 # Top results after reranking
     final_context_chunks: int = 5          # Final chunks sent to generator
-    
+
     # Generation parameters
     max_tokens: int = 1000                 # Maximum tokens in generated response
 ```
@@ -320,7 +320,7 @@ class Document:
 ### Chunk Structure
 
 ```python
-@dataclass  
+@dataclass
 class Chunk:
     chunk_id: str                  # Unique chunk identifier
     doc_id: str                    # Parent document ID
@@ -336,7 +336,7 @@ class Chunk:
 
 1. **Query Processing**: Input query is processed for both vector and text search
 2. **Embedding Generation**: Query is embedded using the configured embedding model
-3. **Parallel Search**: 
+3. **Parallel Search**:
    - Vector search finds semantically similar chunks
    - Full-text search finds keyword-relevant chunks
 4. **Result Fusion**: Results are combined and deduplicated
@@ -349,18 +349,23 @@ class Chunk:
 ### RAGSystem Methods
 
 #### `ingest_documents(documents: List[Document]) -> bool`
+
 Ingest a list of Document objects into the system.
 
 #### `ingest_from_pipeline_json(pipeline_data: List[Dict[str, Any]]) -> bool`
+
 Ingest documents from pipeline JSON format.
 
 #### `query(query: str, strategy: SearchStrategy, use_reranking: bool = True, **kwargs) -> Dict[str, Any]`
+
 Execute a complete RAG query pipeline.
 
 #### `search(query: str, strategy: SearchStrategy, **kwargs) -> List[SearchResult]`
+
 Perform search without generation.
 
 #### `delete_document(doc_id: str) -> bool`
+
 Delete a document and all its chunks from both stores.
 
 ## 🤝 Contributing
@@ -378,6 +383,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## 🆘 Support
 
 For questions and support:
+
 - Check the example usage in `example.py`
 - Review the abstract interfaces in `core/core.py`
 - Examine existing implementations for guidance

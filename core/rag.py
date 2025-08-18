@@ -12,7 +12,6 @@ from core.core import (
     RerankResult,
     SearchResult,
     SearchStrategy,
-    TextSearchStore,
     VectorStore,
 )
 
@@ -25,14 +24,12 @@ class RAGSystem:
         rerank_model: RerankModel,
         generative_model: GenerativeModel,
         vector_store: VectorStore,
-        text_search_store: TextSearchStore,
         config: RAGConfig,
     ):
         self.embedding_model = embedding_model
         self.rerank_model = rerank_model
         self.generative_model = generative_model
         self.vector_store = vector_store
-        self.text_search_store = text_search_store
         self.config = config
         self.logger = setup_logger(__name__)
     
@@ -53,17 +50,15 @@ class RAGSystem:
             for chunk, embedding in zip(all_chunks, embeddings):
                 chunk.embedding = embedding
             
-            # Store in both vector and text search stores
             vector_success = self.vector_store.insert_chunks(all_chunks)
-            text_success = self.text_search_store.insert_chunks(all_chunks)
             
-            return vector_success and text_success
+            return vector_success
             
         except Exception as e:
             self.logger.error(f"Error ingesting documents: {e}")
             return False
-    
-    def ingest_from_pipeline_json(self, pipeline_data: List[Dict[str, Any]]) -> bool:
+
+    def ingest_from_pipeline_json(self, pipeline_data: List[Dict[str, Any]]) :
         """Ingest documents from pipeline JSON format"""
         try:
             documents = []
@@ -71,7 +66,7 @@ class RAGSystem:
                 doc = Document.from_pipeline_json(data)
                 documents.append(doc)
             
-            return self.ingest_documents(documents)
+            return self.ingest_documents(documents),len(documents)
             
         except Exception as e:
             self.logger.error(f"Error ingesting from pipeline JSON: {e}")
@@ -95,64 +90,20 @@ class RAGSystem:
         )
         
         return results
-    def _text_search(
-        self, query: str, top_n: Optional[int] = None, **kwargs
-    ) -> List[SearchResult]:
-        """Perform full-text search"""
-        top_n = top_n or self.config.text_search_top_n
 
-        # Search text store
-        results = self.text_search_store.search_text(
-            query,
-            top_n=top_n,
-            filter_metadata=kwargs.get('filter_metadata')
-        )
-        
-        return results
-    
-    def _hybrid_search(self, query: str, **kwargs) -> List[SearchResult]:
-        """Perform hybrid search (vector + text)"""
-        # Get results from both search methods
-        vector_results = self._vector_search(query, **kwargs)
-        text_results = self._text_search(query, **kwargs)
-        
-        # Combine and deduplicate results
-        seen_chunk_ids = set()
-        combined_results = []
-        
-        # Add vector results first
-        for result in vector_results:
-            if result.chunk.chunk_id not in seen_chunk_ids:
-                combined_results.append(result)
-                seen_chunk_ids.add(result.chunk.chunk_id)
-        
-        # Add text results that weren't already found
-        for result in text_results:
-            if result.chunk.chunk_id not in seen_chunk_ids:
-                result.search_type = "text"
-                combined_results.append(result)
-                seen_chunk_ids.add(result.chunk.chunk_id)
-        
-        # Re-rank combined results
-        combined_results = sorted(combined_results, key=lambda x: x.score, reverse=True)
-        
-        return combined_results
-
-    
     def search(
         self,
         query: str,
-        strategy: SearchStrategy = SearchStrategy.HYBRID,
+        strategy: SearchStrategy = SearchStrategy.VECTOR_ONLY,
         **kwargs
     ) -> List[SearchResult]:
         """Search for relevant chunks"""
         
         if strategy == SearchStrategy.VECTOR_ONLY:
             return self._vector_search(query, **kwargs)
-        elif strategy == SearchStrategy.TEXT_ONLY:
-            return self._text_search(query, **kwargs)
-        elif strategy == SearchStrategy.HYBRID:
-            return self._hybrid_search(query, **kwargs)
+        else:
+            self.logger.error(f"Unsupported search strategy: {strategy}")
+            return []
         
     def rerank_results(
         self, query: str, search_results: List[SearchResult]
@@ -197,7 +148,7 @@ class RAGSystem:
     def query(
         self,
         query: str,
-        strategy: SearchStrategy = SearchStrategy.HYBRID,
+        strategy: SearchStrategy = SearchStrategy.VECTOR_ONLY,
         use_reranking: bool = True,
         **kwargs
     ) -> Dict[str, Any]:
@@ -228,15 +179,15 @@ class RAGSystem:
             context_chunks = [result.chunk for result in top_results]
         
         # Step 3: Generate answer
-        answer = self.generate_answer(query, context_chunks, **kwargs)
+        # answer = self.generate_answer(query, context_chunks, **kwargs)
         
         return {
-            "query": query,
-            "answer": answer,
-            "search_results": [asdict(result) for result in search_results],
-            "rerank_results": [asdict(result) for result in rerank_results],
+            # "query": query,
+            # "answer": answer,
+            # "search_results": [asdict(result) for result in search_results],
+            # "rerank_results": [asdict(result) for result in rerank_results],
             "context_chunks": [asdict(chunk) for chunk in context_chunks],
-            "strategy": strategy.value
+            # "strategy": strategy.value
         }
     def delete_document(self, doc_id: str) -> bool:
         

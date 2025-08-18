@@ -11,11 +11,9 @@ class RAGConfig:
     rerank_model_config: Dict[str, Any] = field(default_factory=dict)
     generative_model_config: Dict[str, Any] = field(default_factory=dict)
     vector_store_config: Dict[str, Any] = field(default_factory=dict)
-    text_search_config: Dict[str, Any] = field(default_factory=dict)
     
     # Search parameters
     vector_search_top_n: int = 20
-    text_search_top_n: int = 20
     rerank_top_n: int = 10
     final_context_chunks: int = 5
     
@@ -24,8 +22,6 @@ class RAGConfig:
 
 class SearchStrategy(Enum):
     VECTOR_ONLY = "vector_only"
-    TEXT_ONLY = "text_only" 
-    HYBRID = "hybrid"  # Combine vector + text search
     
 class ChunkType(Enum):
     TEXT = "text"
@@ -151,27 +147,6 @@ class VectorStore(ABC):
                       top_n: int = 10, 
                       filter_metadata: Optional[Dict[str, Any]] = None) -> List[SearchResult]:
         """Search for similar chunks"""
-        pass
-    
-    @abstractmethod
-    def delete_by_doc_id(self, doc_id: str) -> bool:
-        """Delete all chunks for a document"""
-        pass
-
-
-class TextSearchStore(ABC):
-    """Abstract full-text search interface"""
-    
-    @abstractmethod
-    def insert_chunks(self, chunks: List[Chunk]) -> bool:
-        """Insert chunks for text search"""
-        pass
-    
-    @abstractmethod
-    def search_text(self, query: str, 
-                   top_n: int = 10,
-                   filter_metadata: Optional[Dict[str, Any]] = None) -> List[SearchResult]:
-        """Full-text search for chunks"""
         pass
     
     @abstractmethod
